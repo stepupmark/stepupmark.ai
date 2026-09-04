@@ -36,9 +36,8 @@ export function applyTheme(theme: Theme): void {
   root.style.colorScheme = theme;
 }
 
-// Runs before first paint, inlined into the document head, so there is no flash
-// of the wrong theme on a reload. Kept dependency-free and side-effect-narrow on
-// purpose — it only ever adds the `dark` class, never removes app defaults.
-export const THEME_INIT_SCRIPT = `(function(){try{var k=${JSON.stringify(
-  THEME_STORAGE_KEY,
-)};var s=localStorage.getItem(k);var m=window.matchMedia("(prefers-color-scheme: dark)").matches;var d=s==="dark"||(s!=="light"&&m);if(d){document.documentElement.classList.add("dark");}document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;
+// Runs before first paint, inlined into <head>, so a reload never flashes the
+// wrong theme. The storage key is a literal, not interpolated from
+// THEME_STORAGE_KEY: building this script from a value trips CodeQL's
+// js/bad-code-sanitization. theme.test.ts keeps the two in sync.
+export const THEME_INIT_SCRIPT = `(function(){try{var s=localStorage.getItem("stepupmark-theme");var m=window.matchMedia("(prefers-color-scheme: dark)").matches;var d=s==="dark"||(s!=="light"&&m);if(d){document.documentElement.classList.add("dark");}document.documentElement.style.colorScheme=d?"dark":"light";}catch(e){}})();`;

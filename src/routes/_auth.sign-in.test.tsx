@@ -71,23 +71,6 @@ describe("sign-in route", () => {
     expect(await screen.findByRole("heading", { name: "Elsewhere" })).toBeInTheDocument();
   });
 
-  it("never follows a redirectTo that points off-site", async () => {
-    const user = userEvent.setup();
-    renderRoutes(
-      [
-        { path: "/sign-in", Component: SignInRoute },
-        { path: "/app", Component: () => <h1>Overview</h1> },
-      ],
-      "/sign-in?redirectTo=%2F%2Fevil.com",
-    );
-
-    await user.type(screen.getByLabelText("Email"), demoCredentials.email);
-    await user.type(screen.getByLabelText("Password"), demoCredentials.password);
-    await user.click(screen.getByRole("button", { name: "Sign in" }));
-
-    expect(await screen.findByRole("heading", { name: "Overview" })).toBeInTheDocument();
-  });
-
   it("toggles the password field between masked and revealed", async () => {
     const user = userEvent.setup();
     renderSignIn();

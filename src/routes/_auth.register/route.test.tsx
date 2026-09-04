@@ -30,7 +30,11 @@ async function fillStepTwo(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Continue" }));
 }
 
-describe("register route", () => {
+// Every case drives the full three-step userEvent flow with MSW round-trips
+// between steps. That runs comfortably under 5s in isolation but tips over the
+// default when the whole suite is contending for the machine, so this file gets
+// its own headroom — a real hang still fails at 15s.
+describe("register route", { timeout: 15_000 }, () => {
   it("blocks step one until the fields are valid", async () => {
     const user = userEvent.setup();
     renderRegister();

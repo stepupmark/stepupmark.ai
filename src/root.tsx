@@ -4,6 +4,7 @@ import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import { AppProviders } from "~/app/providers/app-providers";
 import { ErrorState } from "~/components/common/error-state";
 import { describeError } from "~/lib/describe-error";
+import { THEME_INIT_SCRIPT } from "~/lib/theme";
 
 import type { Route } from "./+types/root";
 
@@ -11,11 +12,13 @@ import "~/styles/app.css";
 
 export function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" type="image/png" href="/favicon.png" />
+        {/* Sets the theme class before first paint so a reload never flashes. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <Meta />
         <Links />
       </head>

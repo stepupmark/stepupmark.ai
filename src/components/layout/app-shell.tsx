@@ -53,9 +53,9 @@ export function AppShell({ children, footer, defaultSidebarOpen = true }: AppShe
             {/* The wordmark is ~5.7:1, far too wide for the 3rem rail, so the
                 collapsed state falls back to the square mark. */}
             <img
-              src="/stepupmark-logo.png"
+              src="/stepupmark-logo.webp"
               alt=""
-              className="h-7 w-auto group-data-[collapsible=icon]:hidden"
+              className="h-7 w-auto logo-adaptive group-data-[collapsible=icon]:hidden"
             />
             <img
               src="/favicon.png"

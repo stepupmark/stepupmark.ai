@@ -6,13 +6,21 @@ export default function AuthLayout() {
       <div className="grid min-h-dvh lg:grid-cols-2 wide:min-h-0 wide:w-full wide:max-w-8xl wide:overflow-hidden wide:rounded-3xl wide:shadow-2xl">
         <div className="hidden bg-gradient-to-br from-auth-background-from to-auth-background-to p-10 lg:block">
           <Link to="/">
-            <img src="/stepupmark-logo.png" alt="stepupmark" className="h-8 w-auto" />
+            <img
+              src="/stepupmark-logo.webp"
+              alt="stepupmark"
+              className="h-8 w-auto logo-adaptive"
+            />
           </Link>
         </div>
 
         <div className="flex flex-col px-4 py-8 sm:px-8 lg:bg-background">
           <Link to="/" className="lg:hidden">
-            <img src="/stepupmark-logo.png" alt="stepupmark" className="h-8 w-auto" />
+            <img
+              src="/stepupmark-logo.webp"
+              alt="stepupmark"
+              className="h-8 w-auto logo-adaptive"
+            />
           </Link>
 
           <div className="flex flex-1 items-center justify-center py-8">

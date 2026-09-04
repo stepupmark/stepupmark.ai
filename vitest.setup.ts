@@ -15,6 +15,24 @@ class ResizeObserverStub implements ResizeObserver {
 
 globalThis.ResizeObserver = ResizeObserverStub;
 
+// jsdom does not implement IntersectionObserver. The hero uses one to defer the
+// backdrop video until it is on screen; the stub never reports an intersection,
+// so tests see the poster, which is also what a first paint shows.
+class IntersectionObserverStub implements IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = "";
+  readonly scrollMargin = "";
+  readonly thresholds: readonly number[] = [];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords(): IntersectionObserverEntry[] {
+    return [];
+  }
+}
+
+globalThis.IntersectionObserver = IntersectionObserverStub;
+
 // jsdom does not implement elementFromPoint either. input-otp's internal fake-caret
 // timer calls it on every tick, which otherwise throws well after the test that
 // triggered it has finished, failing an unrelated later test.

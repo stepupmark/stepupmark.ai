@@ -10,7 +10,7 @@ import { ForgotPasswordStepOtp } from "./forgot-password-step-otp";
 import { ForgotPasswordStepReset } from "./forgot-password-step-reset";
 
 export function meta() {
-  return [{ title: "Reset your password · stepupmark" }];
+  return [{ title: "Reset your password | StepUpMark.AI" }];
 }
 
 export function clientLoader() {

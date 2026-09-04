@@ -38,7 +38,7 @@ src/app/              env config, query client, providers
 src/features/<name>/  a business domain; index.ts is its only public surface
 src/components/ui     shadcn/ui, owned by this project
 src/components/common LoadingState / EmptyState / ErrorState
-src/components/layout SiteHeader / AppShell
+src/components/layout AppShell (the private /app frame)
 src/services/api      axios client, error normalization, token refresh, session
 src/lib, src/hooks    genuinely shared helpers, one concern per file
 src/mocks/            MSW contract
@@ -59,12 +59,22 @@ ambient declaration for `eslint-plugin-jsx-a11y`, which ships none.
 ## Routing and rendering
 
 File conventions (`@react-router/fs-routes`): a leading `_` means a layout with **no URL
-segment** (`_public`, `_auth`), dots mean nesting (`app._index`), a folder with `route.tsx`
-colocates helpers. `$.tsx` is the catch-all.
+segment** (`_public`, `_auth`), dots mean nesting (`app._index`), a folder with
+`route.tsx` colocates helpers. `$.tsx` is the catch-all.
+
+`_public` is the one public shell — `/`, `/about`, `/privacy`, `/terms`, `/refund-policy`.
+It runs full-bleed with the site's only nav (`SiteHeader`) and footer (`SiteFooter`),
+both in `src/components/layout/`. `<main>` has no width cap: the landing
+sections manage their own width and each prose page carries its own `mx-auto max-w-3xl`
+column. There is no separate `_marketing` shell.
 
 Rendering is chosen per route in `react-router.config.ts`:
 
-- `/`, `/about` — prerendered to static HTML. No per-request data.
+- `/`, `/about`, `/privacy`, `/terms`, `/refund-policy` — prerendered to static HTML. No
+  per-request data. `/` still prerenders even though it is animation-heavy: the scroll rigs
+  hydrate on the client, the copy is in the static HTML.
+  Note that a prerendered page's controls exist in the DOM before React attaches handlers,
+  so an e2e test that drives one must wait for the page to be interactive first.
 - `/sign-in`, `/register` — server-rendered.
 - `/app/*` — client-rendered via `clientLoader`. Private, personalised data, and the access
   token exists only in browser memory.
@@ -166,7 +176,52 @@ Add components with `pnpm dlx shadcn@latest add <name>`. If the CLI offers to ov
 file that already exists, **decline** — `sidebar` lists `button`, `input`, `separator` and
 `skeleton` as registry dependencies and would replace all four (`button.tsx` and `input.tsx`
 carry local changes), so it was installed by writing the single registry file by hand and
-repointing its imports. `sheet` and `tooltip` were new, so those came from the CLI.
+repointing its imports. `sheet` and `tooltip` were new, so those came from the CLI. `badge`
+was new too and was written by hand (upstream-identical) because its registry entry pulls
+`button`/`input`/`textarea` as dependencies.
+
+### Marketing carve-out (`src/components/marketing/**`, plus `src/routes/_public._index.tsx` and the `SiteHeader` / `SiteFooter` in `src/components/layout/` that `_public.tsx` renders)
+
+The public landing page (`/`) was ported from a standalone design and is a **documented
+exception** to the two rules above. The nav (`site-header.tsx`) and footer
+(`site-footer.tsx`) sit in `src/components/layout/` as the site's shared chrome, but they
+are bespoke ported design — cream tokens, the split-letter wordmark, viewport-unit type —
+not strict shadcn, so this carve-out covers them by name. Inside `src/components/marketing/**`,
+and in those two files, only:
+
+- Bespoke layout and scroll choreography is allowed — the sticky scroll rigs, fluid
+  viewport-unit type (`text-[11vw]`), and the card-scatter transforms have no shadcn or
+  scale-step equivalent. Keep each such value commented with why.
+- Everything else still holds: colour goes through tokens (`--brand-cream` is the ported
+  design's cream accent; never reuse `primary` to mean it), icons are Lucide, `Card` /
+  `Button` / `Badge` are used where they genuinely fit (pricing, CTAs, eyebrows), classes
+  stay inline on the element, and imports are sorted by `pnpm format`.
+- Section data lives in `marketing-content.ts`; the route and each section component stay
+  thin.
+
+**The rigs are `lg`-and-up only, and that constraint is load-bearing.** `useScrollRig()`
+enables a rig when the viewport is at least `64rem` _and_ the visitor has not asked for
+reduced motion; otherwise the section renders a plain fallback. Below `lg` the rotating
+dial is positioned entirely off-screen and the card track has nowhere to travel, so the rig
+charged several screens of scrolling for choreography nobody could see. `useMediaQuery`
+reports `false` on the server and for the hydrating render, so the prerendered HTML always
+carries the fallback — which is also what puts every section's copy in the static markup.
+Both rigs sit below the fold, so the upgrade after hydration is never on screen.
+
+The feature-card fallback is a horizontal snap rail, not a column: eleven stacked cards is
+about 5,000px of scrolling.
+
+Media on this surface follows two rules. **Nothing decorative goes in the prerendered HTML
+if it costs bandwidth** — the hero renders its poster on the server and mounts the
+`<video>` from an effect, after a `matchMedia` check, a `saveData`/`effectiveType` check and
+an `IntersectionObserver` hit. `autoplay` overrides `preload="none"`, so a `<video>` in the
+static markup downloads before any of those checks can run. **`public/marketing/` holds
+delivery-sized assets only** — 1280px video, WebP images at twice their rendered size. Keep
+masters outside the repo. `e2e/marketing.spec.ts` guards the transfer budget and the
+reduced-motion path.
+
+This carve-out does **not** extend to the rest of `src/`. The app and auth surfaces stay on
+strict shadcn + tokens.
 
 ## Styling
 
@@ -218,9 +273,23 @@ step state, the forms and the mutation wiring, exported through the feature's `i
 step components themselves stay colocated in the route folder — they're single-use and would
 otherwise be forced onto the feature's public surface for no reuse.
 
-Comments explain _why_, in a plain human register. No comment that restates the code, no
-decorative banners, no emoji, no JSDoc blocks on self-evident functions. If a comment only
-tells you what the next line already says, delete it.
+The default is no comment. Add one only when the reason for the code cannot be recovered by
+reading it — a non-obvious constraint, a magic number's origin, a workaround and the bug it
+dodges, a decision a reader would otherwise undo. If you cannot name which of those a comment
+serves, do not write it. Everything else goes uncommented.
+
+When a comment is warranted it explains _why_, in the plain register a developer writes in a
+review: one specific sentence, no filler, no hedging. It should read as written by a person
+who understood the problem, not narrated by a tool. Banned outright: comments that restate
+the code, narration of the obvious ("loop over items", "set the state", "render the list"),
+step-by-step play-by-play of a function, decorative banners, emoji, JSDoc on self-evident
+functions, and "AI voice" — padded, over-explained, or hedged prose. If a comment only says
+what the next line already says, it should not exist.
+
+This applies to comments already in the tree, not just new ones. Whenever you open a file,
+delete the comments in it that fail the bar above — do not keep one because it was there, and
+do not need a reason to touch that line beyond the comment itself being noise. The goal is
+that a comment surviving in this codebase is always load-bearing.
 
 Before reaching for `useEffect`, check whether you are synchronising with an external system.
 Data fetching is not. Do not add `useMemo`, `useCallback` or `memo` without evidence.
@@ -292,6 +361,7 @@ without running it.
 - building a styled `div` where a shadcn component already exists
 - collecting Tailwind classes into a variable instead of leaving them on the element
 - arbitrary Tailwind values where a token exists
-- comments that restate the code; comment the _why_ or not at all
+- comments that restate the code, narrate the obvious, or read as tool-generated; comment the
+  _why_ or not at all, and delete the noise ones on sight
 - reaching outside a folder with `../../` instead of the `~/` alias
 - hand-sorting imports instead of running `pnpm format`

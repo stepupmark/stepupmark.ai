@@ -23,7 +23,7 @@ import { applyFieldErrors } from "~/lib/apply-field-errors";
 import { describeError } from "~/lib/describe-error";
 
 export function meta() {
-  return [{ title: "Sign in · stepupmark" }];
+  return [{ title: "Sign in | StepUpMark.AI" }];
 }
 
 export function clientLoader() {

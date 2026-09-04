@@ -10,7 +10,7 @@ import { RegisterStepThree } from "./register-step-three";
 import { RegisterStepTwo } from "./register-step-two";
 
 export function meta() {
-  return [{ title: "Create account · stepupmark" }];
+  return [{ title: "Create account | StepUpMark.AI" }];
 }
 
 export function clientLoader() {

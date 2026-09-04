@@ -2,7 +2,7 @@
   "name": "stepupmark-ai",
   "private": true,
   "type": "module",
-  "packageManager": "pnpm@10.20.0",
+  "packageManager": "pnpm@11.25.0",
   "engines": {
     "node": ">=22.22.1"
   },
@@ -25,6 +25,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@fontsource/kranky": "^5.3.0",
     "@hookform/resolvers": "^5.9.1",
     "@react-router/node": "^8.3.0",
     "@react-router/serve": "^8.3.0",
